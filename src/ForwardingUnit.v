@@ -29,6 +29,38 @@ module ForwardingUnit (
         forwardB = NO_FORWARD;
 
         // TODO: implementar lógica do forwarding para operando A aqui!!!
+        if(exmem_op == ALUop && 
+          exmem_rd != 32'd0 && 
+          exmem_rd == idex_rs1) 
+        begin
+          forwardA = FROM_MEM;
+        end
+        if(exmem_op == ALUop && 
+          exmem_rd != 32'd0 && 
+          exmem_rd == idex_rs2) 
+        begin
+          forwardB = FROM_MEM;
+        end
+
+        if(memwb_op == LW &&
+          memwb_rd != 32'd0 &&
+          !(exmem_op == ALUop &&
+          exmem_rd != 32'd0 &&
+          exmem_rd == idex_rs1) &&
+          memwb_rd == idex_rs1) 
+        begin
+          forwardA = FROM_WB_LD;
+        end
+
+        if (memwb_op == LW &&
+          memwb_rd != 32'd0 &&
+          !(exmem_op == ALUop &&
+          exmem_rd != 32'd0 &&
+          exmem_rd == idex_rs2) &&
+          memwb_rd == idex_rs2) 
+        begin
+          forwardB = FROM_WB_LD;
+        end
         // TODO: implementar lógica do forwarding para operando B aqui!!!
     end
 
