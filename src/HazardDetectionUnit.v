@@ -8,24 +8,26 @@ module HazardDetectionUnit (
 
     output reg stall
 );
-
     localparam LW    = 7'b000_0011;
     localparam SW    = 7'b010_0011;
     localparam BEQ   = 7'b110_0011;
     localparam ALUop = 7'b001_0011;
-
     initial begin
         stall = 1'b0;
     end
 
     always @(*) begin
         stall = 1'b0;
-
         // Load-use hazard:
         // If the instruction in EX/MEM is a load and the instruction in ID/EX
         // uses its destination register, the pipeline must stall one cycle.
 
-        // TODO: Implementar a lógica para detectar hazard causado por load aqui!!!
+        if(exmem_op == LW
+          && (idex_rs1 == exmem_rd
+          || idex_rs2 == exmem_rd))
+        begin
+          stall = 1'b1;
+        end
 
     end
 

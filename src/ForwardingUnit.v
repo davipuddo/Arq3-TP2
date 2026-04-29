@@ -62,6 +62,28 @@ module ForwardingUnit (
           forwardB = FROM_WB_LD;
         end
 
+        if(memwb_op == ALUop
+          && memwb_rd != 32'd0
+          && !(exmem_op == LW
+          && exmem_rd != 32'd0
+          && exmem_rd == idex_rs1)
+          && memwb_rd == idex_rs1) 
+        begin
+          forwardA = FROM_WB_ALU;
+        end
+
+        if (memwb_op == ALUop
+          && memwb_rd != 32'd0
+          && !(exmem_op == LW 
+          && exmem_rd != 32'd0
+          && exmem_rd == idex_rs2)
+          && memwb_rd == idex_rs2) 
+        begin
+          forwardB = FROM_WB_ALU;
+        end
+
+        $display("forwardA = %02b\nforwardB = %02b\n", forwardA, forwardB);
+
     end
 
 endmodule
