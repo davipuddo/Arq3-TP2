@@ -1,23 +1,15 @@
 #!/bin/sh
 
-file=$1
-name=$"${1%.*}"
-
-comp() {
-    verilator --timing -Wno-UNOPTFLAT --binary src/$file -o $name -Mdir target $1
-}
-
-if [ $# == 1 ]; then
-    comp
-else [ $# == 2 ] && [ "$2" == "--dump" ]
-    comp "--trace"
+if [ ! -d "./target" ]; then
+    mkdir target
 fi
+
+iverilog ./src/*.v ./testbench/tb_RISCVCPU.v -o ./target/bin $1
 
 printf "\n\n\n"
 
-if [ -f ./target/$name ]; then
-    ./target/$name
+if [ -f "./target/bin" ]; then
+    vvp target/bin
 else
-    echo "Error: No file named [$name] was found at target!"
-    echo "Has the program compiled correctly?"
+    echo "Binary file not found!"
 fi
