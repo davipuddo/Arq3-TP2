@@ -82,7 +82,7 @@ module ForwardingUnit (
           forwardB = FROM_WB_ALU;
         end
 
-        $display("forwardA = %02b\nforwardB = %02b\n", forwardA, forwardB);
+        // $display("forwardA = %02b\nforwardB = %02b\n", forwardA, forwardB);
 
     end
 
