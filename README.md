@@ -1,146 +1,30 @@
 # 📘 Trabalho Prático — Pipeline RISC-V
+Este repositório contém a implementação e o relatório de um projeto acadêmico voltado ao estudo de **arquitetura de processadores**, com foco em um processador baseado na arquitetura **RISC-V** com pipeline de cinco estágios.
 
 ## 🎯 Objetivo
+O objetivo deste trabalho é explorar, na prática, conceitos fundamentais de execução de instruções em processadores modernos, especialmente:
 
-Este projeto tem como objetivo permitir a simulação e análise de um processador RISC-V simplificado com pipeline, baseado no modelo apresentado no livro do Patterson.
+* Execução em **pipeline**
+* Controle de fluxo com instruções de desvio (branch)
+* Tratamento de dependências entre instruções (**hazards**)
 
-O foco **não é síntese em hardware**, mas sim a compreensão dos seguintes conceitos fundamentais:
+A proposta consiste em evoluir um modelo simplificado de processador, adicionando mecanismos que garantam a execução correta e eficiente de programas.
+## ⚙️ O que foi desenvolvido
+O trabalho foi dividido em três etapas:
 
-- Pipeline de instruções
-- Hazards de dados (RAW)
-- Forwarding (bypass)
-- Stalls (bolhas)
-- Hazards de controle (branch)
-- Flush de pipeline
-- Impacto no desempenho (CPI)
+### 1. Controle de Fluxo
+Implementação de instruções de desvio condicional (branch), permitindo alterar o fluxo de execução de programas.
+### 2. Execução de Programa de Teste
+Execução e ajuste de um programa em assembly, evidenciando problemas causados por dependências entre instruções.
+### 3. Forwarding e Tratamento de Hazards
+Implementação de mecanismos que permitem ao processador lidar automaticamente com conflitos e dependências, garantindo a execução correta sem intervenção manual no código.
 
----
+## 👥 Autores
+* Antônio Drumond Cota de Souza
+* Davi Ferreira Puddo
+* Gabriel Valedo Batista Silva
+* Mateus Henrique Medeiros Diniz
+* Raquel de Parde Motta
 
-## 📦 Estrutura do Projeto
-
-```
-trabalho_pipeline/
-├── src/
-│   ├── RISCVCPU.v
-│   ├── ForwardingUnit.v
-│   ├── HazardDetectionUnit.v
-│   ├── BranchUnit.v
-│   └── PipelineStats.v
-│
-├── tb/
-│   └── tb_RISCVCPU.v
-│
-└── README.md
-```
----
-# 🛠️ Ferramentas
----
-
-## 🐧 Instalação no Ubuntu / Linux
-
-```bash
-sudo apt update
-sudo apt install iverilog gtkwave
-```
-
-Verificar:
-
-```bash
-iverilog -V
-gtkwave --version
-```
-
----
-
-## ▶️ Compilar e Executar
-
-```bash
-iverilog -o simv src/*.v tb/tb_RISCVCPU.v
-vvp simv
-```
-
-Waveform:
-
-```bash
-gtkwave wave.vcd
-```
-
----
-
-## 🪟 Windows
-
-### ✔️ Opção recomendada: WSL
-
-```powershell
-wsl --install
-```
-
-Depois:
-
-```bash
-sudo apt update
-sudo apt install iverilog gtkwave
-```
-
----
-
-### ✔️ Opção nativa
-
-- Icarus Verilog: http://bleyer.org/icarus/
-- GTKWave: https://gtkwave.sourceforge.net/
-
----
-
-## 📊 Métricas
-
-- Ciclos
-- Instruções
-- Stalls
-- Bypasses
-- Branches
-- Flushes
-
----
-
-## 🧠 Conceitos
-
-### Hazard RAW
-Dependência de dados entre instruções.
-
-### Forwarding
-Evita stalls usando resultados antecipados.
-
-### Stall
-Inserção de bolhas no pipeline.
-
-### Branch Hazard
-Desvios alteram fluxo de execução.
-
-### Flush
-Descarta instruções inválidas após branch.
-
----
-
-## 🐞 Debug
-
-Verifique sinais:
-
-- stall
-- forwardA / forwardB
-- branch_taken
-- flush
-
----
-
-## ⚠️ Observação
-
-Projeto didático. Não sintetizável.
-
-## 🛠️ RISC-V Assembler
-
-Use este [montador](https://riscvasm.lucasteske.dev/#) de assembly do risc-v online para simplificar os testes!
-
-
-## 📌 Licença
-
-Uso acadêmico.
+## 📄 Relatório
+O relatório completo do trabalho está disponível neste repositório e descreve o processo de desenvolvimento, as decisões tomadas e os conceitos envolvidos.
