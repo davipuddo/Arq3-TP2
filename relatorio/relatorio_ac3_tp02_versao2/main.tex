@@ -65,6 +65,11 @@
 \noindent This report describes the implementation of key components in a five-stage pipeline data path for a simplified RISC-V processor, based on the Patterson and Hennessy architecture. While pipelining improves CPU performance through instruction interleaving, it introduces structural, data, and control hazards. This work addresses these challenges by implementing flow control mechanisms, specifically the branch-equal (BEQ) instruction, and developing logic for hazard detection and forwarding. The development was divided into three main phases: the initial implementation of branch instructions and control flow; the execution and manual correction of assembly test programs using NOPs and instruction reordering; and the final integration of a Hazard Detection Unit and Forwarding Unit to handle load-use dependencies and ALU data hazards automatically. The results demonstrate the efficiency of these hardware-level solutions in maintaining execution integrity without the need for manual code intervention. 
 \end{abstract}
 
+\begin{abstract}
+\textbf{Resumo.~}
+\noindent Este relatório descreve a implementação de componentes chave em um caminho de dados com pipeline de cinco estágios para um processador RISC-V simplificado, baseado na arquitetura de Patterson e Hennessy. Embora o pipelining melhore a performance da CPU através da intercalação de instruções, ele introduz dependências estruturais, de dados e de controle. Esse trabalho aborda tais desafios mediante a implementação de mecanismos de controle de fluxo, especificamente a instrução branch-equal (BEQ), e o desenvolvimento de lógica para detecção de dependências e forwarding. O desenvolvimento foi dividido em três principais fases: a implementação inicial das instruções de desvio e controle de fluxo; a execução e correção manual de programas de teste em assembly utilizando NOPs e reordenação de instruções; e a integração final de uma Unidade de Detecção de Dependências e Unidade de Forwarding para lidar com dependências do tipo load-use e dependências de dados na ULA automaticamente. Os resultados demonstram a eficiência destas soluções a nível de hardware em manter a integridade da execução sem a necessidade de intervenção manual.
+\end{abstract}
+
 \begin{keywords}
 Pipeline, Processor, Risc-V, Computer Achitecture
 \end{keywords}
@@ -92,11 +97,12 @@ Enquanto a própria arquitetura é capaz de resolver o problema da dependência 
 
 O objetivo deste trabalho é implementar partes do caminho de dados em um processador RISC-V simplificado com pipeline de cinco estágios. O modelo de processador utilizado é apresentado no livro Computer Organization and Design Risc-V Edition. \cite{patterson2017organizacao}.
 
-\begin{figure}[H]
+\begin{figure}
 \includegraphics[width=\linewidth]{processadorRiscV.png}
 \caption{O caminho de dados simples com a unidade de controle descrito no livro de Patterson e Hennessy (2017).}
 \label{fig1}
 \end{figure}
+
 
 O RISC-V é uma ISA (Instruction Set Architecture) universal de tipo RISC (Reduced Instruction Set Computing) cuja principal característica é a modularidade. O RISC-V possui instruções básicas capazes de executar uma pilha completa de software de forma independente. Dizer que um processador RISC-V possui um pipeline de cinco estágios significa, portanto, que ele: (1) segue um ISA atômico e modular; (2) utiliza uma técnica de paralelismo em seu caminho de dados que permite que a execução de até cinco instruções se sobreponha simultaneamente no tempo para aumentar o rendimento e melhorar o desempenho. \citep{patterson2017riscv}
 
@@ -108,30 +114,57 @@ Dessa forma, neste trabalho adicionaremos funcionalidades ao pipeline para branc
 
 O controle de fluxo pode ser definido como os mecanismos de instruções de saltos e desvios, que alteram a ordem de execução sequencial de um programa. Nesse contexto, um branch é uma instrução de desvio condicional que faz o processador saltar para o endereço de destino apenas se a comparação entre dois registradores for verdadeira. Caso a condição imposta não seja atendida, o processador executa a próxima instrução sequencial. \cite{patterson2017riscv}
 
-Nesta etapa, implementamos o desvio condicional e tratamos hazards de controle.Para isso, implementamos: a instrução BEQ, a comparação de  operandos no estágio EX, o cálculo endereço de destino do branch e a atualização correta do Program Counter (PC).
+Nesta etapa, implementamos o desvio condicional e tratamos hazards de controle. Para isso, implementamos: a instrução BEQ, a comparação de  operandos no estágio EX, o cálculo endereço de destino do branch e a atualização correta do Program Counter (PC).
 
 Dessa forma, quando um branch é tomado, o PC passa a apontar para o endereço correto e as instruções já carregadas são descartadas.
 
-\subsection{Execução do Programa de Teste}
+\subsection{Primeira Execução do Programa de Teste}
 
-Até este ponto, o caminho de dados do RISC-V ainda não possui mecanismos para a detecção de dependências e correção. O programa de teste em questão possui dependências e, portanto, sua execução não será bem sucedida. 
+Até este ponto, o caminho de dados do RISC-V ainda não possui mecanismos para a detecção de dependências e correção. O programa de teste em questão possui dependências e, portanto, para garantir a execução sem erros, foi necessário reordenar as instruções manualmente e inserir instruções de \texttt{NOP} em alguns locais, além de corrigir manualmente o endereço da label para o desvio da instrução \texttt{BEQ}.
 
-Nesta etapa, modificamos o código assembly para que o programa execute sem erros. Foi necessário reordenar instruções e adicionar nops no código do programa, bem como corrigir a label da instrução beq.
+No entanto, nosso objetivo era garantir a execução correta do programa sem a necessidade de alterações manuais ou inserção de \texttt{NOP}s no programa. Para tal fim, implementamos dois módulos adicionais para o projeto de CPU: Um para a detecção de dependências solucionáveis por Forwarding (\texttt{src\/ForwardingUnit.v}), e um outro para a detecção de dependências mais severas, que forçassem um \textit{stall} do pipeline para executar corretamente (\texttt{src\/HazardDetectionUnit.v}).
 
 \subsection{Hazard Detection e Forwarding}
 
-Por fim, implementamos a lógica de controle de hazards no
-pipeline. A seleção dos operandos da Unidade Lógica Aritmética (ALU) foi feita, considerando forwarding dos estágio MEM, WB (ALU) e WB (load), bem como a detecção de hazards do tipo load-use, inserindo stall quando necessário.
+A unidade de \textit{forwarding} foi a primeira a ser implementada, sendo responsável por detectar dependências de dados entre a instrução no estágio ID/EX e resultados ainda não escritos no banco de registradores, gerando os sinais forwardA e forwardB para selecionar de onde cada operando da ULA deve vir. O módulo compara rs1 e rs2 com os registradores de destino presentes nos estágios EX/MEM e MEM/WB e, quando encontra correspondência válida, escolhe entre não fazer \textit{forwarding}, encaminhar diretamente do estágio de memória, ou encaminhar resultados que vêm do estágio de \textit{write-back}, diferenciando inclusive valores produzidos por operações da ULA e por instruções de carga (lw). Com isso, ele reduz a necessidade de \textit{stalls} e ajuda a manter o fluxo do pipeline mais eficiente.
+
+Mesmo após a implementação da unidade de \textit{forwarding}, ainda não haviamos obtido uma execução correta, pois a instrução BEQ ainda gerava um "atraso" grande demais. A solução foi simples, com a inclusão da unidade de detecção de \textit{hazards}. Verifica se a instrução no registrador EXMEM é uma instrução de \textit{load}, e caso seja, gerar \textit{stall} se a próxima instrução precisar de usar o resultado do \textit{Load}.
 
 \section{Resultados Obtidos}
 
+% \begin{Verbatim}[fontsize=\small, frame=single, numbers=left]
+\begin{verbatim}
+============================================
+Program      : full_dependencies
+Cycles       : 15
+Instructions : 7
+Stalls       : 1
+Bypasses     : 5
+Branches     : 1
+Flushes      : 1
+CPI          : 2.14
+============================================
+
+==============================
+CHECK EXPECTED RESULTS
+==============================
+PASS: all expected results match.
+==============================
+\end{verbatim}
+
+Os resultados apresentados evidenciam o correto funcionamento do pipeline com os mecanismos de \textit{forwarding} e detecção de \textit{hazards} implementados. Mesmo diante de um programa com múltiplas dependências de dados e controle, o processador foi capaz de executar todas as instruções sem erros, como indicado pela validação final bem-sucedida. Observa-se ainda que o número reduzido de \textit{stalls} (apenas um) e a presença significativa de \textit{bypasses} demonstram a efetividade das técnicas adotadas para minimizar interrupções no fluxo do pipeline. O valor de CPI obtido permanece dentro do esperado para um cenário com hazards, confirmando a eficiência da solução proposta
+
 \section{Conclusão}
+
+Por meio deste relatório, documentamos nosso sucesso em adicionar a instrução de desvio condicional, bem como realizar os ajustes e implementação dos recursos necessários para dar capacidade ao processador de executar a pipeline corretamente, sem a necessidade de intervenção externa. Os resultados evidenciam uma baixa taxa de stalls e uma alta taxa de bypasses, com um CPI satisfatório para um cenário com diversos hazards, validando as alterações feitas.
+
+Como trabalhos futuros, evidenciamos a relevância do suporte à mais extensões do RISC-V, que contribuem de forma positiva com o ecossistema da ISA. Além disso, a implementação de caches de múltiplos níveis e separadas entre cache de instrução e dados é um ponto importante para aprimorar as capacidades do processador e ainda lidar de forma eficiente com dependências de dados. Por fim, a implementação de uma pipeline superescalar, com suporte a execução fora de ordem, é uma adição muito importante para equiparar a arquitetura com outras atuais.
 
 \section*{Declarações}
 
 \subsection*{Disponibilidade do Material}
 
-O código-fonte deste relatório está disponível publicamente em https://github.com/davipuddo/Arq3-TP2.
+O código-fonte deste relatório está disponível publicamente em \textit{https://github.com/davipuddo/Arq3-TP2}.
 
 \subsection*{Uso de IA}
 
