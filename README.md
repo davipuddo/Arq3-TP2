@@ -19,6 +19,9 @@ Execução e ajuste de um programa em assembly, evidenciando problemas causados 
 ### 3. Forwarding e Tratamento de Hazards
 Implementação de mecanismos que permitem ao processador lidar automaticamente com conflitos e dependências, garantindo a execução correta sem intervenção manual no código.
 
+## Como executar
+Para executar nosso projeto, você vai precisar de instalar o Icarus Verilog em sua máquina. Então, basta executar o script `run.sh` na raiz do repositório.
+
 ## 👥 Autores
 * Antônio Drumond Cota de Souza
 * Davi Ferreira Puddo
